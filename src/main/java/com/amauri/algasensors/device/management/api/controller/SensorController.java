@@ -24,17 +24,14 @@ public class SensorController {
 
     @GetMapping("{sensorId}")
     public SensorOutput getOne(@PathVariable TSID sensorId) {
-
         Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
         return convertToModel(sensor);
     }
 
     @GetMapping
     public Page<SensorOutput> search(@PageableDefault Pageable pageable) {
         Page<Sensor> sensors = sensorRepository.findAll(pageable);
-
         return sensors.map(this::convertToModel);
     }
 
@@ -52,6 +49,32 @@ public class SensorController {
                 .build();
         sensor = sensorRepository.saveAndFlush(sensor);
         return convertToModel(sensor);
+    }
+
+    @PutMapping("{sensorId}")
+    public SensorOutput update(@PathVariable TSID sensorId,
+                               @RequestBody SensorInput input) {
+        Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        sensor.setName(input.getName());
+        sensor.setIp(input.getIp());
+        sensor.setLocation(input.getLocation());
+        sensor.setProtocol(input.getProtocol());
+        sensor.setModel(input.getModel());
+        sensor.setEnabled(input.getEnabled());
+
+        sensor = sensorRepository.save(sensor);
+
+        return convertToModel(sensor);
+
+    }
+
+    @DeleteMapping("{sensorId}")
+    public void remove(@PathVariable TSID sensorId) {
+        Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        sensorRepository.delete(sensor);
     }
 
     private SensorOutput convertToModel(Sensor sensor) {
