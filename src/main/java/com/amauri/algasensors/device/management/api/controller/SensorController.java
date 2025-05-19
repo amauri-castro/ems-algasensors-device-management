@@ -22,17 +22,17 @@ public class SensorController {
 
     private final SensorRepository sensorRepository;
 
-    @GetMapping("{sensorId}")
-    public SensorOutput getOne(@PathVariable TSID sensorId) {
-        Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        return convertToModel(sensor);
-    }
-
     @GetMapping
     public Page<SensorOutput> search(@PageableDefault Pageable pageable) {
         Page<Sensor> sensors = sensorRepository.findAll(pageable);
         return sensors.map(this::convertToModel);
+    }
+
+    @GetMapping("/{sensorId}")
+    public SensorOutput getOne(@PathVariable TSID sensorId) {
+        Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return convertToModel(sensor);
     }
 
     @PostMapping
@@ -70,11 +70,30 @@ public class SensorController {
 
     }
 
-    @DeleteMapping("{sensorId}")
-    public void remove(@PathVariable TSID sensorId) {
+    @DeleteMapping("/{sensorId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable TSID sensorId) {
         Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         sensorRepository.delete(sensor);
+    }
+
+    @PutMapping("/{sensorId}/enable")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void enable(@PathVariable TSID sensorId) {
+        Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        sensor.setEnabled(Boolean.TRUE);
+        sensorRepository.save(sensor);
+    }
+
+    @DeleteMapping("/{sensorId}/enable")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void disable(@PathVariable TSID sensorId) {
+        Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        sensor.setEnabled(Boolean.FALSE);
+        sensorRepository.save(sensor);
     }
 
     private SensorOutput convertToModel(Sensor sensor) {
