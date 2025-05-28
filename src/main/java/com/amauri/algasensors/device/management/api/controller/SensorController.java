@@ -1,7 +1,9 @@
 package com.amauri.algasensors.device.management.api.controller;
 
 import com.amauri.algasensors.device.management.api.client.SensorMonitoringClient;
+import com.amauri.algasensors.device.management.api.model.SensorDetailOutput;
 import com.amauri.algasensors.device.management.api.model.SensorInput;
+import com.amauri.algasensors.device.management.api.model.SensorMonitoringOutput;
 import com.amauri.algasensors.device.management.api.model.SensorOutput;
 import com.amauri.algasensors.device.management.common.IdGenerator;
 import com.amauri.algasensors.device.management.domain.model.Sensor;
@@ -36,6 +38,20 @@ public class SensorController {
         Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         return convertToModel(sensor);
+    }
+
+    @GetMapping("/{sensorId}/detail")
+    public SensorDetailOutput getOneWithDetail(@PathVariable TSID sensorId) {
+        Sensor sensor = sensorRepository.findById(new SensorId(sensorId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        SensorMonitoringOutput monitoringOutput = sensorMonitoringClient.getDetail(sensorId);
+        SensorOutput sensorOutput = convertToModel(sensor);
+
+        return SensorDetailOutput.builder()
+                .sensor(sensorOutput)
+                .monitoring(monitoringOutput)
+                .build();
     }
 
     @PostMapping
